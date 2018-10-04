@@ -278,7 +278,7 @@ endp
 
 @change_tool
 	if LogInMCO eq false
-		call @UdrDriveUnitSellect
+		call @UdrGetSpinCode(job_name,(1))
 		{nb,'T0'}
 		{nb,'G18'}
 		if tool_type ne tap_mill
@@ -293,7 +293,7 @@ endp
 
 @turn_change_tool
 	if LogInMCO eq false
-		call @UdrDriveUnitSellect
+		call @UdrGetSpinCode(job_name,(1))
 		if prev_job_mac_type eq milling
 			call @UdrMillingMode((0))
 			call @UdrMachinePlane
@@ -551,6 +551,7 @@ endp
 	if job_machine_type ne turning
 		{first_axis_angle:apos_f}
 		if get_axis_name (submachine_ID, 5) eq 'B1'
+			call @UdrBaxisDir(submachine_ID)
 			call @UdrBaxisMode
 		else
 			call @UdrMachinePlane
@@ -561,6 +562,14 @@ endp
 		endif
 	endif
 	LogInTrasform = used_in_transform_4x
+endp
+
+@UdrBaxisDir(integer SM)
+	if get_table_num(SM) eq 1 ;main
+		plane_f = '< B>5.3()'
+	else
+		plane_f = '< B>5.3(i)'
+	endif
 endp
 
 @fourth_axis
@@ -574,9 +583,9 @@ endp
 	if LogInTrasform eq 0
 		LogBAxisMode = true
 		gcode = 900
-		{nb,'G900',xonext:xopos_f,yonext:yopos_f,zonext:zopos_f,second_axis_angle:bpos_f}
+		{nb,'G900',xonext:xopos_f,yonext:yopos_f,zonext:zopos_f,second_axis_angle:plane_f}
 		if x5_job eq false
-			{nb,'G950 X0 Y0 Z0',first_plane_angle:plane_f}
+			{nb,'G950 X0 Y0 Z0',second_axis_angle:plane_f}
 			LogBAxisModePlane = true
 		endif
 		{nb'G17',tool_position_in_turret:'< T>z2.0(p)'}
@@ -635,7 +644,7 @@ endp
 endp
 
 @spin
-	call @UdrGetSpinCodeFromDeviceID(DeviceIdNum)
+	call @UdrGetSpinCode(DeviceName,(2))
 	mcode = IntSpinCode+spin_direction-1
 	spin = spin_rate
 	{nb,mcode}
@@ -683,30 +692,19 @@ endp
 	MatStrDevDuTable<<16,2>> = '180'
 endp
 
-@UdrGetSpinCodeFromDeviceID(integer devID)
+@UdrGetSpinCode(string name integer a)
 	local string StrSpinCode StrSpinFormat DuName
-	DuName = 'M80 S3=' ;get_drive_unit_name(submachine_ID)
+	if a eq 1 ;for Job
+		DuName = 'M80 S3=' ;GetJobDriveUnitName(name)
+	endif
+	if a eq 2 ;for Device
+		DuName = 'M80 S3=' ;GetDeviceDriveUnitName(name)
+	endif
 	StrSpinCode = left(DuName,3)
 	StrSpinCode = right(StrSpinCode,2)
 	IntSpinCode = tonum(StrSpinCode)
 	StrSpinCode = right(DuName,4)
-	;local string DUnum 
-	;IntSpinCode = tonum(MatStrDevDuTable<<devID,2>>)
-	;DUnum = MatStrDevDuTable<<devID,1>>
-	;spin_f = '< S' + DUnum + '=>5.0(p)'
 	spin_f = '<' + StrSpinCode + '>5.0(p)'
-endp
-
-
-@UdrDriveUnitSellect
-	local integer DevNum DevID
-	;DevNum = get_table_num(submachine_ID)
-	if job_machine_type eq turning
-		;DevID = Get_Device_ID(DevNum,2)
-	else
-		;DevID = Get_Device_ID(DevNum,1)
-	endif
-	call @UdrGetSpinCodeFromDeviceID(DevID)
 endp
 
 @open_close_obj
