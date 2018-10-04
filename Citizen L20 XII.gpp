@@ -30,7 +30,7 @@
 	yhpos_f         = '< Y>5.3'
 	apos_f         	= '< C>5.3'
 	bpos_f         	= '< B>5.3'
-	plane_f			= '< B>5.3'
+	plane_f			= '< B>5.3(i)'
 	feed_f          = '< F>4.3(p)'
 	spin_f          = '< S>5.0(n)'
 	pcode_f         = '<P>5.0(p)'
