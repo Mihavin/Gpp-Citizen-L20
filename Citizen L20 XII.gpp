@@ -1,0 +1,786 @@
+;c/n xxxx
+;Citizen SL20
+;date 				revision	support person 			description
+;20/06/2018		3.0				Michael V.					SC2018DV - New post version 
+;20/06/2018		3.1				Michael V.					SC2018DV - MCO fixes, temporary support LH CS in post
+;21/06/2018		3.2				Michael V.					SC2018DV - Skip empty labels, tapping spin b#92491
+;21/06/2018		4.0				Michael V.					SC2018DV - LH submachines List, reverse Plane angle for LHCS 
+;26/08/2018		4.1				Michael V.					SC2018DV - CS sets - Removed LH CS workarounds
+;03/10/2018		5.0				Michael V.					SC2018DV - Rebiulded VIMD, support of device ID get function
+
+@init_post
+	global string spin_f bpos_f pcode_f sync_label_f plane_f MatStrDevDuTable<<25,2>>
+	global integer IntTrace IntSpinCode IntLastSpinCcode<<2>>
+	global logical LogInTrace LogInFaceCartesian<<2>> LogBAxisMode LogBAxisModePlane LogInTrasform LogInMCO
+	global string move_axis_x_f move_axis_y_f move_axis_z_f
+	global string move_axis_a_f move_axis_b_f xh_move_f yh_move_f
+	global string move_extr_axis_L1_f move_extr_axis_L2_f move_extr_axis_L3_f
+	global string move_extr_axis_R1_f move_extr_axis_R2_f move_extr_axis_R3_f
+	global string zh_move_f ah_move_f bh_move_f
+	gcode_f         = '<G>3.1(p)'
+	mcode_f         = '<M>3.1(p)'
+	xpos_f         	= '< X>5.3(*2)'
+	zpos_f         	= '< Z>5.3'
+	ypos_f         	= '< Y>5.3'
+	xopos_f         = '< X>5.3(*2)'
+	zopos_f         = '< Z>5.3'
+	yopos_f         = '< Y>5.3'
+	xhpos_f         = '< X>5.3(*2)'
+	zhpos_f         = '< Z>5.3'
+	yhpos_f         = '< Y>5.3'
+	apos_f         	= '< C>5.3'
+	bpos_f         	= '< B>5.3'
+	plane_f			= '< B>5.3'
+	feed_f          = '< F>4.3(p)'
+	spin_f          = '< S>5.0(n)'
+	pcode_f         = '<P>5.0(p)'
+	sync_label_f	= '<!L>5.0(p)'
+	blknum_gen      = false
+	blknum_delta    = 1
+	blknum_max      = 999999
+	gcode_space     = true
+	if LogInTrace eq false
+		LogInTrace = true
+		input "Trace level : 0-None ; 1-Mid ; 5-All", IntTrace
+	endif
+	call @UdrDeviceDuMatrixInit
+	trace "all": IntTrace
+endp
+
+@start_mach_ctrl
+	LogInMCO = true
+endp
+
+@end_mach_ctrl
+	LogInMCO = false
+endp
+
+@start_of_file
+	{'O'program_number:'z4.0(p)','(',part_name,')'}
+endp
+
+@start_program
+	{nl, '$'ChannelID}
+	if ChannelID eq 1
+		{nb, '('get_solidcam_version,' b 'build_revision,')'}
+		{nb, '('date,' ',time')'}
+		{nl, '(MACHINE ',MACHINE_NUMBER,VMID_file')'}
+		{nl, '(STOCK DIA: 'stock_x,'MM)'} 
+		{nl, '#501='target_z_plus'(PART_LENGTH)'}
+		{nl, 'IF [#599EQ1] GOTO998'}
+		{nl, 'M9'}
+		{nl, 'M52'}
+		{nl, 'M6(MAIN CLOSE)'}
+		{nl, 'G04 P500'}
+		{nl, 'G18 G97 G40 G113' }
+		{nl, 'M89 M94 M96 M124' }
+		{nl, 'G0 G99 X#814+1.0 Z-1.0'}
+		{nl, 'M51(PART OFF PROBE)'}
+	endif
+endp
+
+@end_program
+	{nb, 'N999'}
+	{nb, 'M2'}
+	{nb, 'M99'}
+endp
+
+@end_of_file
+	{nl, ''}
+	{nl, '$0'}
+	{nl, 'A2-LE-2-20-12-P-M'}
+	{nl, '#814='(Bar_Stock_O_D*1000):'z10.0(p)'}
+	{nl, '#815='(Tool_Positioning_Point_Dia*1000):'z10.0(p)'}
+	{nl, '#816='(Cut_Off_Tool*1000):'z10.0(p)'}
+	{nb, '#817='(Cut_Off_Speed*1000):'z10.0(p)'}
+	{nl, '#822='(Cut_Off_Feed*1000):'z10.0(p)'}
+	{nl, '#824='(Cut_Off_End_Dia*1000):'z9.0(p)'}
+	{nl, '#818='(Mcn_Len_St_Pos*1000):'z10.0(p)'}
+	{nl, '#819='(Pieces_1Chuck*1000):'z10.0(p)'}
+	{nb, '#918='(abs(Back_Chuck_Extend_Length)*1000):'z10.0(p)'}
+	{nl, '#821='(abs(Back_Work_Extend_Length)*1000):'z10.0(p)'}
+	{nl, '#921=0000000000'}
+	if Guide_Bush eq true
+		{nl, '#919=0000000000'}
+	else
+		{nl, '#919=0000001000'}
+	endif
+	{nb,'#922=0000000000'}
+	if MACHINE_NUMBER eq 6 or MACHINE_NUMBER eq 7
+		{nb, '#990=0004007000'}
+	else
+		{nb, '#990=0004107000'}
+	endif
+	{nb, '#991=0000055000'}
+	{nb, '#992=0000067000'}
+	{nb, '#893=0000000000'}
+	{nb, '#25974=0004050000'}
+	if T8_X_3 eq true
+		{nb, '#25975=0004061000'}
+	else
+		{nb,'#25975=0004058000'}
+	endif
+	if T9_X_3 eq true
+		{nb, '#25976=0004061000'}
+	else
+		{nb, '#25976=0004058000'}
+	endif
+	{nb, '#25977=0000000000'}
+	{nb, '#25978=0000000000'}
+	{nb, '#25979=0000000000'}
+	{nb, '#25980=0000000000'}
+	{nl, ''}
+	{nl, '%'}
+endp
+
+@rapid_move
+	if job_machine_type eq turning
+		change(ypos) = false
+		change(yopos) = false
+	endif
+	gcode=0
+	if LogBAxisModePlane eq true
+		{nb,[gcode],[xpos],[ypos],[zpos]}
+	else
+		{nb,[gcode],[xopos],[yopos],[zopos]}
+	endif
+endp
+
+@line
+	gcode=1
+	if LogBAxisModePlane eq true
+		{nb,[gcode],[xpos],[ypos],[zpos]}
+	else
+		{nb,[gcode],[xopos],[yopos],[zopos]}
+	endif
+	{[feed]}
+endp
+
+@arc
+	if LogBAxisModePlane eq true
+		gcode = 2 + arc_direction
+		{nb,[gcode],[xpos],[ypos],[zpos]}
+	else
+		gcode = 2 + arc_odirection
+		{nb,[gcode],[xopos],[yopos],[zopos]}
+	endif
+	if arc_size gt 180 then
+		radius = -radius
+	endif
+	{' R'radius,[feed]}
+endp
+
+@turn_thread_line
+	gcode=33
+	{nb,gcode,[xpos],[zpos],feed}
+endp
+
+@turn_thread_arc
+	gcode = 35 + arc_direction
+	{nb,gcode,[xpos],[zpos]}
+	if arc_size gt 180 then
+		radius = -radius
+	endif
+	{' R'radius,feed}	
+endp
+
+@compensation
+	if LogBAxisModePlane eq true
+		gcode = 42-side
+	else
+		gcode = 42-side_o
+	endif
+	{nb,gcode,' '}
+	skipline = false
+endp
+
+@sync_process
+	if NumJobsInLabel ne 0 or Last_Sync eq 1
+		{nb,sync_label}
+		local string Axes_Pattern
+		Axes_Pattern = get_axes_pattern_name(Sync_Data_Name,ChannelID,sync_label)
+		{nb,Axes_Pattern}
+	endif
+endp
+
+@turn_drill
+	if drill_type <> tapping 
+		if drill_type eq Peck
+			gcode = 1
+			{nb,gcode,drill_lower_z:zopos_f,feed}
+			gcode = 0
+			{nb,gcode,zopos}
+		endif
+		if drill_type eq G7_1
+			gcode = 1
+			{nb,gcode,drill_lower_z:zopos_f,feed}
+			{nb,zopos}
+		endif
+		if drill_type eq Peck
+			gcode = 74
+			{nb,gcode,drill_lower_z:zopos_f,'K'(abs(down_step)):'5.0(P*1000)',feed}
+		endif
+	else
+		gcode = 32
+		{nb,gcode,drill_lower_z:zopos_f,feed }
+	endif
+endp
+
+@drill_point
+	call @UdrCaxisInc(apos)
+	if first_drill eq false
+		if LogBAxisModePlane eq true
+			{nb,[xpos],[ypos],[zpos]}
+		else
+			{nb,[xopos],[yopos],[zopos],[apos]}
+		endif
+	endif
+endp
+
+@end_drill
+	{nb,'G80'}
+endp
+
+@drill
+	call @UdrCaxisInc(apos)
+	gcode = 0
+	if LogBAxisModePlane eq true
+		{nb,gcode,[xpos],[ypos],[zpos]}
+	else
+		{nb,gcode,[xopos],[yopos],[zopos]}
+	endif
+	if drill_type eq Peck
+		gcode = 83
+	endif
+	if drill_type eq Tapping 
+		gcode = 84
+		{nb,'M29',spin}
+	endif
+	if drill_type eq G7_1
+		gcode = 85
+	endif
+	if LogBAxisModePlane eq true
+		{nb,gcode,' Z',drill_lower_z,' R',(drill_upper_z+safety)}
+	else
+		{nb,gcode,drill_lower_zo:xopos_f,' R',(drill_upper_zo+safety*2)}
+	endif
+	if drill_type eq Peck
+		if down_step gt 0
+			{' P'down_step:'5.0(*1000p)',' Q0'}
+		endif
+	endif
+	if drill_type eq Tapping
+		{' F'tool_drill_lead}
+	else
+		{feed}
+	endif
+endp
+
+@change_tool
+	if LogInMCO eq false
+		call @UdrDriveUnitSellect
+		{nb,'T0'}
+		{nb,'G18'}
+		if tool_type ne tap_mill
+			call @m_feed_spin
+		endif
+		{nb,'T',tool_position_in_turret:'z2.0(n)','00'}
+		call @UdrMillingMode((1))
+	else
+		call @UdrMCOToolChange
+	endif
+endp
+
+@turn_change_tool
+	if LogInMCO eq false
+		call @UdrDriveUnitSellect
+		if prev_job_mac_type eq milling
+			call @UdrMillingMode((0))
+			call @UdrMachinePlane
+		endif
+		spin = tool_first_spin
+		change(spin) = true
+		call @feed_spin
+		{nb,'T',tool_position_in_turret:'z2.0(n)','00'}
+		{nb,'G0'xnext:xpos_f,znext:zpos_f,tool_position_in_turret:'< T>z2.0(p)'}
+	else
+		call @UdrMCOToolChange
+	endif
+endp
+
+@UdrMCOToolChange
+	{nb,'T',tool_position_in_turret:'z2.0(n)','00'}
+endp
+
+@feed_spin
+	if slave_drive_unit ne 1
+		if change(spin) or IntLastSpinCcode<<ChannelID>> ne mcode
+			if feed_unit eq 0
+				{nb,'G98'}
+			else
+				{nb,'G99'}
+			endif
+			if spin_unit eq css
+				{nb,'G50 S'spin_limit}
+				{nb,'G96 '}
+			else
+				{nb,'G97 '}
+			endif
+			mcode = IntSpinCode+spin_direction
+			IntLastSpinCcode<<ChannelID>> = mcode
+			{mcode,spin}
+		endif
+	endif
+endp
+
+@m_feed_spin
+	if slave_drive_unit ne 1 and tool_type ne tap_mill
+		mcode = IntSpinCode+tool_direction
+		if change(spin) or IntLastSpinCcode<<ChannelID>> ne mcode
+			{nb,mcode,spin}
+			{nb,'G98'}
+		endif
+		IntLastSpinCcode<<ChannelID>> = mcode
+	endif
+endp
+
+@thread
+	if lead_unit ne mm
+		lead = 25.4 / lead
+	endif
+	if work_type eq multiple
+		{nb,'G76 P0101',tool_ALFA:'z2.0(n)',' R0'}
+		{nb,'G76 X'last_pos_x:'4.3(*2)',' Z'last_pos_z}
+		if (first_pos_x - last_pos_x) ne 0
+			{' R'(first_pos_x - last_pos_x):'5.0(*1000p)'}
+		endif
+		{' P'depth:'5.0(*1000p)',' Q'down_step:'5.0(*1000p)',' F'lead}
+	else
+		{nb,'G92 X'last_pos_x:'4.3(*2)',' Z'last_pos_z}
+		if (first_pos_x - last_pos_x) ne 0
+			{' R'(first_pos_x - last_pos_x)}
+		endif
+		{' F'lead}
+	endif
+endp
+
+@turning
+	if work_type eq rough
+		if process_type eq long
+			{nb,'G71 U'down_step,' R'retreat_distance}
+			{nb,'G71 P'start_line,' Q'end_line,' U',rough_offset_x,' W',rough_offset_z,feed}
+		else
+			{nb,'G72 W'down_step,' R'retreat_distance}
+			{nb,'G72 P'start_line,' Q'end_line,' U',rough_offset_x,' W',rough_offset_z,feed}
+		endif
+	endif
+	if work_type eq copy
+		{nb,'G73 U'(retreat_distance*2),' W'retreat_distance}
+		{nb,'G73 P'start_line,' Q'end_line,' U',rough_offset_x,' W',feed}
+	endif
+	if work_type eq profile
+		{nb,'G70 P'start_line,' Q'end_line,feed}
+	endif
+endp
+
+@move_5x
+	call @UdrCaxisInc(apos)
+	if x5_job eq true
+		gcode = 0
+		if change(bpos) eq true and change(ypos) eq true
+			{nb,[gcode],[xpos],[zpos],[apos],[bpos]}
+			{nb,[ypos]}
+		else
+			{nb,[gcode],[xpos],[ypos],[zpos],[apos],[bpos]}
+		endif
+	else
+		gcode = 1
+		if rot_axis_type ne axis4_face  
+			if rot_axis_coord eq axis4_polar
+				{nb,[gcode],[xopos],[yopos],[apos],[zopos],' F2000'}
+			endif
+		else
+			if rot_axis_coord eq axis4_cartesian
+				{nb,[gcode],[xhpos],[yhpos:apos_f],[zhpos],' F2000'}
+			else
+				{nb,[gcode],[xopos],[yopos],[zopos],[apos],' F2000'}
+			endif
+		endif
+	endif
+endp
+
+@line_5x
+	call @UdrCaxisInc(apos)
+	if x5_job eq true
+		gcode = 1
+		if change(bpos) eq true and change(ypos) eq true
+			{nb,[gcode],[xpos],[zpos],[apos],[bpos],[feed]}
+			{nb,[ypos]}
+		else
+			{nb,[gcode],[xpos],[ypos],[zpos],[apos],[bpos],[feed]}
+		endif
+	else
+		gcode = 1
+		if rot_axis_type ne axis4_face
+			if rot_axis_coord eq axis4_polar
+				{nb,[gcode],[xopos],[yopos],[apos],[zopos],[feed]}
+			endif
+		else
+			if rot_axis_coord eq axis4_cartesian
+				{nb,[gcode],[xhpos],[yhpos:apos_f],[zhpos],[feed]}
+			else
+				{nb,[gcode],[xopos],[yopos],[zopos],[apos],[feed]}
+			endif
+		endif
+	endif
+endp
+
+@arc_5x
+	call @UdrCaxisInc(apos)
+	if rot_axis_type ne axis4_face
+		gcode = 2+arc_odirection
+		if rot_axis_coord eq axis4_polar
+			{nb,[gcode],[xopos],[yopos],[apos],[zopos],[feed]}
+		endif
+	else
+		if rot_axis_coord eq axis4_cartesian
+			gcode = 2+arc_direction
+			{nb,[gcode],[xhpos],[yhpos:apos_f],[zhpos]}
+		else
+			gcode = 2+arc_odirection	
+			{nb,[gcode],xopos,[yopos],[zopos],apos}
+		endif
+	endif
+	{' R'radius, [feed]}
+endp
+
+@UdrModalityCheck
+	change(move_axis_a) =  userDef_a
+	change(move_axis_b) =  userDef_b
+	change(move_axis_x) =  userDef_x
+	change(move_axis_y) =  userDef_y
+	change(move_axis_z) =  userDef_z
+	change(ah_move) =  userDef_a
+	change(bh_move) =  userDef_b
+	change(xh_move) =  userDef_x
+	change(yh_move) =  userDef_y
+	change(zh_move) =  userDef_z
+endp
+
+@UdrAxisNames
+	local string name
+	name = left(name_extr_axis_L1,1)
+	move_extr_axis_L1_f = '< '+name+'>5.3'
+	name = left(name_extr_axis_L2,1)
+	move_extr_axis_L2_f = '< '+name+'>5.3'
+	name = left(name_extr_axis_L3,1)
+	move_extr_axis_L3_f = '< '+name+'>5.3'
+	name = left(name_extr_axis_R1,1)
+	move_extr_axis_R1_f = '< '+name+'>5.3'
+	name = left(name_extr_axis_R2,1)
+	move_extr_axis_R2_f = '< '+name+'>5.3'
+	name = left(name_extr_axis_R3,1)
+	move_extr_axis_R3_f = '< '+name+'>5.3'
+	name = left(name_axis_x,1)
+	move_axis_x_f = '< '+name+'>5.3(*2)'
+	name = left(name_axis_y,1)
+	move_axis_y_f = '< '+name+'>5.3'
+	name = left(name_axis_z,1)
+	move_axis_z_f = '< '+name+'>5.3'
+	name = left(name_axis_a,1)
+	move_axis_a_f = '< '+name+'>5.3'
+	name = left(name_axis_b,1)
+	move_axis_b_f = '< '+name+'>5.3'
+	name = left(name_axis_x,1)
+	xh_move_f = '< '+name+'>5.3(*2)'
+	name = left(name_axis_y,1)
+	yh_move_f = '< '+name+'>5.3'
+	name = left(name_axis_z,1)
+	zh_move_f = '< '+name+'>5.3'
+	name = left(name_axis_a,1)
+	ah_move_f = '< '+name+'>5.3'
+	name = left(name_axis_b,1)
+	bh_move_f = '< '+name+'>5.3'
+endp
+
+@move_object
+	local string g98
+	call @UdrAxisNames
+	call @UdrModalityCheck
+	if gcode eq 1
+		g98 = 'G98 '
+	else
+		g98 = ''
+	endif
+	if MCO_CoordSysType eq 1
+		call @UdrSCSelect
+		gcode = 1-is_rapid_move
+		{nb,[g98,gcode],[move_axis_x],[move_axis_y],[move_axis_z],[move_axis_a],[move_axis_b]}
+	else
+		call @UdrSCSelect
+		gcode = 1-is_rapid_move
+		{nb,g98,gcode,[xh_move],[yh_move],[zh_move],[ah_move],[bh_move]}
+	endif
+	if gcode eq 1
+		{feed_move:feed_f}
+	endif
+endp
+
+@UdrSCSelect
+	if MCO_CoordSysType eq 1
+		gcode = 53
+		{nb,gcode,' '}
+		skipline = false
+	endif
+endp
+
+@mco_message
+	{nb,'('message')'}
+endp
+
+@message
+	message = replace(message,'MACHINE CONTROL OPERATION','MCO')
+	if instr(message,'----') eq 0
+		{nb, ''}
+		{nb, '('message')'}
+	endif
+endp
+
+@start_of_job
+	call @UdrCaxisInc(first_axis_angle)
+	if job_machine_type ne turning
+		{first_axis_angle:apos_f}
+		if get_axis_name (submachine_ID, 5) eq 'B1'
+			call @UdrBaxisMode
+		else
+			call @UdrMachinePlane
+			{nb,'G0'first_axis_angle:apos_f,tool_position_in_turret:'< T>z2.0(p)'}
+		endif
+		if rot_axis_type eq axis4_face
+			call @UdrFaceCartesian((1))
+		endif
+	endif
+	LogInTrasform = used_in_transform_4x
+endp
+
+@fourth_axis
+	if fourth_axis_last eq 1
+		LogInTrasform = 0
+		call @end_of_job
+	endif
+endp
+
+@UdrBaxisMode
+	if LogInTrasform eq 0
+		LogBAxisMode = true
+		gcode = 900
+		{nb,'G900',xonext:xopos_f,yonext:yopos_f,zonext:zopos_f,second_axis_angle:bpos_f}
+		if x5_job eq false
+			{nb,'G950 X0 Y0 Z0',first_plane_angle:plane_f}
+			LogBAxisModePlane = true
+		endif
+		{nb'G17',tool_position_in_turret:'< T>z2.0(p)'}
+	endif
+endp
+
+@UdrBaxisModeOff
+	if LogInTrasform eq 0
+		if LogBAxisModePlane eq true
+			LogBAxisModePlane = false
+			gcode = 951
+			{nb,gcode,' B0'}
+			if LogBAxisMode eq true
+				LogBAxisMode = false
+				gcode = 901
+				{nb,gcode}
+			endif
+		endif
+	endif
+endp
+
+@end_of_job
+	if  LogInTrasform eq 0
+		if is_drive_unit_shared(Sync_Data_Name,sync_label,index_job) eq 0
+			if is_last_job_using_drive_unit(Sync_Data_Name,ChannelID,sync_label,index_job) eq 1 or next_job_machine_type ne job_machine_type
+				call @Stop_tool
+			endif
+		endif
+		call @UdrBaxisModeOff
+		call @UdrFaceCartesian((0))
+	endif
+endp
+
+@Stop_tool
+	mcode = IntSpinCode + 2
+	if mcode ne IntLastSpinCcode<<ChannelID>>
+		{nb,mcode}
+		IntLastSpinCcode<<ChannelID>> = mcode
+	endif
+endp
+
+@UdrMachinePlane
+	if job_machine_type eq turning
+		gcode = 18
+	else
+		if spindle_direction_x eq 1 and LogBAxisMode ne true
+			gcode = 19
+		else
+			gcode = 18
+		endif
+		if rot_axis_type eq axis4_radial
+			gcode = 16
+		endif
+	endif
+	{nb,gcode}
+endp
+
+@spin
+	call @UdrGetSpinCodeFromDeviceID(DeviceIdNum)
+	mcode = IntSpinCode+spin_direction-1
+	spin = spin_rate
+	{nb,mcode}
+	if spin ne 0
+		{spin}
+	endif
+endp
+
+@UdrDeviceDuMatrixInit
+	MatStrDevDuTable<<9,1>> = '2'
+	MatStrDevDuTable<<9,2>> = '23'
+	MatStrDevDuTable<<14,1>> = '2'
+	MatStrDevDuTable<<14,2>> = '23'
+
+	;Main Spindle
+	MatStrDevDuTable<<6,1>> = '1'
+	MatStrDevDuTable<<6,2>> = '3'
+	MatStrDevDuTable<<12,1>> = '1'
+	MatStrDevDuTable<<12,2>> = '3'
+
+	;Gang Rotary Tools
+	MatStrDevDuTable<<4,1>> = '3'
+	MatStrDevDuTable<<4,2>> = '80'
+	MatStrDevDuTable<<22,1>> = '3'
+	MatStrDevDuTable<<22,2>> = '80'
+	MatStrDevDuTable<<17,1>> = '3'
+	MatStrDevDuTable<<17,2>> = '80'
+	MatStrDevDuTable<<15,1>> = '3'
+	MatStrDevDuTable<<15,2>> = '80'
+	MatStrDevDuTable<<18,1>> = '3'
+	MatStrDevDuTable<<18,2>> = '80'
+	MatStrDevDuTable<<23,1>> = '3'
+	MatStrDevDuTable<<23,2>> = '80'
+
+	;Opposite Tools Stock
+	MatStrDevDuTable<<19,1>> = '4'
+	MatStrDevDuTable<<19,2>> = '83'
+	MatStrDevDuTable<<13,1>> = '4'
+	MatStrDevDuTable<<13,2>> = '83'
+
+	;Back Head Stock
+	MatStrDevDuTable<<20,1>> = '5'
+	MatStrDevDuTable<<20,2>> = '180'
+	MatStrDevDuTable<<16,1>> = '5'
+	MatStrDevDuTable<<16,2>> = '180'
+endp
+
+@UdrGetSpinCodeFromDeviceID(integer devID)
+	local string DUnum 
+	IntSpinCode = tonum(MatStrDevDuTable<<devID,2>>)
+	DUnum = MatStrDevDuTable<<devID,1>>
+	spin_f = '< S' + DUnum + '=>5.0(p)'
+endp
+
+
+@UdrDriveUnitSellect
+	local integer DevNum DevID
+	;DevNum = get_table_num(submachine_ID)
+	if job_machine_type eq turning
+		;DevID = Get_Device_ID(DevNum,2)
+	else
+		;DevID = Get_Device_ID(DevNum,1)
+	endif
+	call @UdrGetSpinCodeFromDeviceID(DevID)
+endp
+
+@open_close_obj
+	if open_close eq 1
+		if DeviceName eq 'Main Spindle'
+			mcode = 6
+		else
+			mcode = 15
+		endif
+	else
+		if DeviceName eq 'Back Spindle'
+			mcode = 7
+		else
+			mcode = 16
+		endif
+	endif
+	{nb,mcode}
+endp
+
+@working_mode
+	if DeviceName eq 'Back Spindle'
+		spindle = 1
+	else
+		spindle = 0
+	endif
+	if MCO_Working_Mode eq 1
+		call @UdrMillingMode((1))
+	else
+		call @UdrMillingMode((0))
+	endif
+endp
+
+@UdrMillingMode(logical Milling_on)
+	if Milling_on eq true
+		if spindle eq 0
+			mcode = 18
+		else
+			mcode = 48
+		endif
+	else
+		if spindle eq 0
+			mcode = 20
+		else
+			mcode = 79
+		endif
+	endif
+	{nb,mcode}
+endp
+
+@dwell
+	gcode = 4
+	{nb,gcode,dwell_time:'< P>5.0(*1000p)'}
+endp
+
+@UdrFaceCartesian(logical a)
+	if a eq true
+		gcode = 12.1
+		{nb,gcode}
+		LogInFaceCartesian<<ChannelID>> = true
+	else
+		if LogInFaceCartesian<<ChannelID>> eq true
+			gcode = 13.1
+			{nb,gcode}
+			LogInFaceCartesian<<ChannelID>> = false
+		endif
+	endif
+endp
+
+@UdrCaxisInc(numeric AngleA)
+	local logical ChB
+	ChB = change(AngleA)
+	If spindle gt 0
+		AngleA = AngleA + 90
+	endif
+	change(AngleA) = ChB
+endp
+
+@machine_stop
+	{nb,'M0'}
+endp
+
+@machine_opt_stop
+	{nb,'M1'}
+endp
