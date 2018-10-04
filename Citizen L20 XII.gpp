@@ -684,23 +684,15 @@ endp
 endp
 
 @UdrGetSpinCodeFromDeviceID(integer devID)
-	local string StrSpinCode StrSpinFormat DuName
-	DuName = 'M80 S3=' ;get_drive_unit_name(submachine_ID)
-	StrSpinCode = left(DuName,3)
-	StrSpinCode = right(StrSpinCode,2)
-	IntSpinCode = tonum(StrSpinCode)
-	StrSpinCode = right(DuName,4)
-	;local string DUnum 
-	;IntSpinCode = tonum(MatStrDevDuTable<<devID,2>>)
-	;DUnum = MatStrDevDuTable<<devID,1>>
-	;spin_f = '< S' + DUnum + '=>5.0(p)'
-	spin_f = '<' + StrSpinCode + '>5.0(p)'
+	IntSpinCode = tonum(MatStrDevDuTable<<devID,2>>)
+	spin_f = '< S' + MatStrDevDuTable<<devID,1>> + '=>5.0(p)'
 endp
 
 
 @UdrDriveUnitSellect
 	local integer DevNum DevID
 	;DevNum = get_table_num(submachine_ID)
+	DevId = 20 ;test
 	if job_machine_type eq turning
 		;DevID = Get_Device_ID(DevNum,2)
 	else
