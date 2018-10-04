@@ -328,16 +328,22 @@ endp
 			endif
 			mcode = IntSpinCode+spin_direction
 			IntLastSpinCcode<<ChannelID>> = mcode
-			{mcode,spin}
+			{mcode}
+			if spin ne 0
+				{spin}
+			endif
 		endif
 	endif
 endp
 
 @m_feed_spin
 	if slave_drive_unit ne 1 and tool_type ne tap_mill
-		mcode = IntSpinCode+tool_direction
+		mcode = IntSpinCode+spin_direction
 		if change(spin) or IntLastSpinCcode<<ChannelID>> ne mcode
-			{nb,mcode,spin}
+			{nb,mcode}
+			if spin ne 0
+				{spin}
+			endif
 			{nb,'G98'}
 		endif
 		IntLastSpinCcode<<ChannelID>> = mcode
@@ -691,7 +697,8 @@ endp
 
 @UdrDriveUnitSellect
 	local integer DevNum DevID
-	;DevNum = get_table_num(submachine_ID)
+	if 
+	DevNum = get_table_num(submachine_ID)
 	DevId = 20 ;test
 	if job_machine_type eq turning
 		;DevID = Get_Device_ID(DevNum,2)
