@@ -17,21 +17,28 @@
 	global string move_extr_axis_L1_f move_extr_axis_L2_f move_extr_axis_L3_f
 	global string move_extr_axis_R1_f move_extr_axis_R2_f move_extr_axis_R3_f
 	global string zh_move_f ah_move_f bh_move_f
+
+	global integer IntMovementPrecision IntFeedPrecision IntSpinPrecision IntRotaryPrecision
+	IntMovementPrecision = get_machine_precision("movement")
+	IntFeedPrecision = get_machine_precision("feed")
+	IntSpinPrecision = get_machine_precision("spin")
+	IntRotaryPrecision = get_machine_precision("rotary")
+
 	gcode_f         = '<G>3.1(p)'
 	mcode_f         = '<M>3.1(p)'
-	xpos_f         	= '< X>5.3(*2)'
-	zpos_f         	= '< Z>5.3'
-	ypos_f         	= '< Y>5.3'
-	xopos_f         = '< X>5.3(*2)'
-	zopos_f         = '< Z>5.3'
-	yopos_f         = '< Y>5.3'
-	xhpos_f         = '< X>5.3(*2)'
-	zhpos_f         = '< Z>5.3'
-	yhpos_f         = '< Y>5.3'
-	apos_f         	= '< C>5.3'
-	bpos_f         	= '< B>5.3'
-	plane_f			= '< B>5.3()'
-	feed_f          = '< F>4.3(p)'
+	xpos_f         	= '< X>5.'+ tostr(IntMovementPrecision) + '(*2)'
+	zpos_f         	= '< Z>5.'+ tostr(IntMovementPrecision) + ''
+	ypos_f         	= '< Y>5.'+ tostr(IntMovementPrecision) + ''
+	xopos_f         = '< X>5.'+ tostr(IntMovementPrecision) + '(*2)'
+	zopos_f         = '< Z>5.'+ tostr(IntMovementPrecision) + '3'
+	yopos_f         = '< Y>5.'+ tostr(IntMovementPrecision) + ''
+	xhpos_f         = '< X>5.'+ tostr(IntMovementPrecision) + '(*2)'
+	zhpos_f         = '< Z>5.'+ tostr(IntMovementPrecision) + ''
+	yhpos_f         = '< Y>5.'+ tostr(IntMovementPrecision) + ''
+	apos_f         	= '< C>5.'+ tostr(IntRotaryPrecision) + ''
+	bpos_f         	= '< B>5.'+ tostr(IntRotaryPrecision) + ''
+	plane_f			= '< B>5.'+ tostr(IntRotaryPrecision) + '()'
+	feed_f          = '< F>4.'+ tostr(IntFeedPrecision) + '(p)'
 	spin_f          = '< S>5.0(n)'
 	pcode_f         = '<P>5.0(p)'
 	sync_label_f	= '<!L>5.0(p)'
@@ -44,6 +51,7 @@
 		input "Trace level : 0-None ; 1-Mid ; 5-All", IntTrace
 	endif
 	trace "all": IntTrace
+
 endp
 
 @start_mach_ctrl
