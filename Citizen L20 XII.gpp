@@ -18,6 +18,7 @@
 	global string move_extr_axis_R1_f move_extr_axis_R2_f move_extr_axis_R3_f
 	global string zh_move_f ah_move_f bh_move_f
 	global integer IntMovementPrecision IntFeedPrecision IntSpinPrecision IntRotaryPrecision
+	global string StrPatternName StrPatternDescription
 
 	IntMovementPrecision	= get_machine_precision("movement")
 	IntFeedPrecision		= get_machine_precision("feed")
@@ -205,7 +206,7 @@ endp
 		{nb,sync_label}
 		local string Axes_Pattern
 		Axes_Pattern = get_axes_pattern_name(Sync_Data_Name,ChannelID,sync_label)
-		{nb,Axes_Pattern}
+		call @UdrPatternName(Axes_Pattern)
 	endif
 endp
 
@@ -759,4 +760,13 @@ endp
 
 @machine_opt_stop
 	{nb,'M1'}
+endp
+
+@UdrPatternName(string pn)
+	local integer ins bins
+	ins = instr(pn,' -') - 1
+	bins = strlen(pn) - (ins + 3)
+	StrPatternDescription = right(pn,bins)
+	StrPatternName = left(pn,ins)
+	{nb,StrPatternName,' ('StrPatternDescription')'}
 endp
