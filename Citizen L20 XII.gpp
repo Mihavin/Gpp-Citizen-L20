@@ -19,33 +19,33 @@
 	global string zh_move_f ah_move_f bh_move_f
 	global integer IntMovementPrecision IntFeedPrecision IntSpinPrecision IntRotaryPrecision
 
-	IntMovementPrecision = get_machine_precision("movement")
-	IntFeedPrecision = get_machine_precision("feed")
-	IntSpinPrecision = get_machine_precision("spin")
-	IntRotaryPrecision = get_machine_precision("rotary")
+	IntMovementPrecision	= get_machine_precision("movement")
+	IntFeedPrecision		= get_machine_precision("feed")
+	IntSpinPrecision		= get_machine_precision("spin")
+	IntRotaryPrecision		= get_machine_precision("rotary")
 
-	gcode_f         = '<G>3.1(p)'
-	mcode_f         = '<M>3.1(p)'
-	xpos_f         	= '< X>5.'+ tostr(IntMovementPrecision) + '(*2)'
-	zpos_f         	= '< Z>5.'+ tostr(IntMovementPrecision) + ''
-	ypos_f         	= '< Y>5.'+ tostr(IntMovementPrecision) + ''
-	xopos_f         = '< X>5.'+ tostr(IntMovementPrecision) + '(*2)'
-	zopos_f         = '< Z>5.'+ tostr(IntMovementPrecision) + '3'
-	yopos_f         = '< Y>5.'+ tostr(IntMovementPrecision) + ''
-	xhpos_f         = '< X>5.'+ tostr(IntMovementPrecision) + '(*2)'
-	zhpos_f         = '< Z>5.'+ tostr(IntMovementPrecision) + ''
-	yhpos_f         = '< Y>5.'+ tostr(IntMovementPrecision) + ''
-	apos_f         	= '< C>5.'+ tostr(IntRotaryPrecision) + ''
-	bpos_f         	= '< B>5.'+ tostr(IntRotaryPrecision) + ''
-	plane_f			= '< B>5.'+ tostr(IntRotaryPrecision) + '()'
-	feed_f          = '< F>4.'+ tostr(IntFeedPrecision) + '(p)'
-	spin_f          = '< S>5.0(n)'
-	pcode_f         = '<P>5.0(p)'
-	sync_label_f	= '<!L>5.0(p)'
-	blknum_gen      = false
-	blknum_delta    = 1
-	blknum_max      = 999999
-	gcode_space     = true
+	gcode_f					= '<G>3.1(p)'
+	mcode_f					= '<M>3.1(p)'
+	xpos_f					= '< X>5.'+ tostr(IntMovementPrecision) + '(*2)'
+	zpos_f					= '< Z>5.'+ tostr(IntMovementPrecision) + ''
+	ypos_f					= '< Y>5.'+ tostr(IntMovementPrecision) + ''
+	xopos_f					= '< X>5.'+ tostr(IntMovementPrecision) + '(*2)'
+	zopos_f					= '< Z>5.'+ tostr(IntMovementPrecision) + '3'
+	yopos_f					= '< Y>5.'+ tostr(IntMovementPrecision) + ''
+	xhpos_f					= '< X>5.'+ tostr(IntMovementPrecision) + '(*2)'
+	zhpos_f					= '< Z>5.'+ tostr(IntMovementPrecision) + ''
+	yhpos_f					= '< Y>5.'+ tostr(IntMovementPrecision) + ''
+	apos_f					= '< C>5.'+ tostr(IntRotaryPrecision) + ''
+	bpos_f					= '< B>5.'+ tostr(IntRotaryPrecision) + ''
+	plane_f					= '< B>5.'+ tostr(IntRotaryPrecision) + '()'
+	feed_f					= '< F>4.'+ tostr(IntFeedPrecision) + '(p)'
+	spin_f					= '< S>5.0(n)'
+	pcode_f					= '<P>5.0(p)'
+	sync_label_f			= '<!L>5.0(p)'
+	blknum_gen				= false
+	blknum_delta			= 1
+	blknum_max				= 999999
+	gcode_space				= true
 	if LogInTrace eq false
 		LogInTrace = true
 		input "Trace level : 0-None ; 1-Mid ; 5-All", IntTrace
