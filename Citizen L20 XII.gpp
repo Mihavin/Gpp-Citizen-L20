@@ -17,8 +17,8 @@
 	global string move_extr_axis_L1_f move_extr_axis_L2_f move_extr_axis_L3_f
 	global string move_extr_axis_R1_f move_extr_axis_R2_f move_extr_axis_R3_f
 	global string zh_move_f ah_move_f bh_move_f
-
 	global integer IntMovementPrecision IntFeedPrecision IntSpinPrecision IntRotaryPrecision
+
 	IntMovementPrecision = get_machine_precision("movement")
 	IntFeedPrecision = get_machine_precision("feed")
 	IntSpinPrecision = get_machine_precision("spin")
@@ -51,7 +51,6 @@
 		input "Trace level : 0-None ; 1-Mid ; 5-All", IntTrace
 	endif
 	trace "all": IntTrace
-
 endp
 
 @start_mach_ctrl
@@ -193,9 +192,9 @@ endp
 
 @compensation
 	if LogBAxisModePlane eq true
-		gcode = 42-side
+		gcode = 42 - side
 	else
-		gcode = 42-side_o
+		gcode = 42 - side_o
 	endif
 	{nb,gcode,' '}
 	skipline = false
@@ -642,7 +641,7 @@ endp
 	if job_machine_type eq turning
 		gcode = 18
 	else
-		if spindle_direction_x eq 1 and LogBAxisMode ne true
+		if spindle_direction_x eq 1
 			gcode = 19
 		else
 			gcode = 18
@@ -656,7 +655,7 @@ endp
 
 @spin
 	call @UdrGetSpinCode(DeviceName,(2))
-	mcode = IntSpinCode+spin_direction-1
+	mcode = IntSpinCode + spin_direction - 1
 	spin = spin_rate
 	{nb,mcode}
 	if spin ne 0
