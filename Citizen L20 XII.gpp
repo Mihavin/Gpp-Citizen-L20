@@ -146,7 +146,7 @@ endp
 endp
 
 @line
-	gcode=1
+	gcode = 1
 	if LogBAxisModePlane eq true
 		{nb,[gcode],[xpos],[ypos],[zpos]}
 	else
@@ -170,7 +170,7 @@ endp
 endp
 
 @turn_thread_line
-	gcode=33
+	gcode = 33
 	{nb,gcode,[xpos],[zpos],feed}
 endp
 
@@ -659,15 +659,15 @@ endp
 @UdrGetSpinCode(string name integer a)
 	local string StrSpinCode StrSpinFormat DuName
 	if a eq 1 ;for Job
-		DuName = 'M80 S3=' ;GetJobDriveUnitName(name)
+		DuName = get_drive_unit_name(name)
 	endif
 	if a eq 2 ;for Device
-		DuName = 'M80 S3=' ;GetDeviceDriveUnitName(name)
+		DuName = 'M999 S9=' ;GetDeviceDriveUnitName(name)
 	endif
-	StrSpinCode = left(DuName,3)
-	StrSpinCode = right(StrSpinCode,2)
+	StrSpinCode = left(DuName,4)
+	StrSpinCode = right(StrSpinCode,3)
 	IntSpinCode = tonum(StrSpinCode)
-	StrSpinCode = right(DuName,4)
+	StrSpinCode = right(DuName,3) + '='
 	spin_f = '<' + StrSpinCode + '>5.0(p)'
 endp
 
