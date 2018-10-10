@@ -16,10 +16,11 @@
 	global string move_axis_a_f move_axis_b_f xh_move_f yh_move_f
 	global string move_extr_axis_L1_f move_extr_axis_L2_f move_extr_axis_L3_f
 	global string move_extr_axis_R1_f move_extr_axis_R2_f move_extr_axis_R3_f
-	global string zh_move_f ah_move_f bh_move_f
+	global string zh_move_f ah_move_f bh_move_f spin_limit_f
 	global integer IntMovementPrecision IntFeedPrecision IntSpinPrecision IntRotaryPrecision
 	global string StrPatternName StrPatternDescription
-
+	global logical LogLHSubmachine<<15>> LogRZSubmachine<<15>>
+	global numeric rev_arc rev_comp
 	IntMovementPrecision	= get_machine_precision("movement")
 	IntFeedPrecision		= get_machine_precision("feed")
 	IntSpinPrecision		= get_machine_precision("spin")
@@ -27,20 +28,21 @@
 
 	gcode_f					= '<G>3.1(p)'
 	mcode_f					= '<M>3.1(p)'
-	xpos_f					= '< X>5.'+ tostr(IntMovementPrecision) + '(*2)'
-	zpos_f					= '< Z>5.'+ tostr(IntMovementPrecision) + ''
-	ypos_f					= '< Y>5.'+ tostr(IntMovementPrecision) + ''
-	xopos_f					= '< X>5.'+ tostr(IntMovementPrecision) + '(*2)'
-	zopos_f					= '< Z>5.'+ tostr(IntMovementPrecision) + '3'
-	yopos_f					= '< Y>5.'+ tostr(IntMovementPrecision) + ''
-	xhpos_f					= '< X>5.'+ tostr(IntMovementPrecision) + '(*2)'
-	zhpos_f					= '< Z>5.'+ tostr(IntMovementPrecision) + ''
-	yhpos_f					= '< Y>5.'+ tostr(IntMovementPrecision) + ''
-	apos_f					= '< C>5.'+ tostr(IntRotaryPrecision) + ''
-	bpos_f					= '< B>5.'+ tostr(IntRotaryPrecision) + ''
-	plane_f					= '< B>5.'+ tostr(IntRotaryPrecision) + '()'
-	feed_f					= '< F>4.'+ tostr(IntFeedPrecision) + '(p)'
+	xpos_f					= '< X>5.'+ tostr(IntMovementPrecision:'1.0(p)') + '(*2)'
+	zpos_f					= '< Z>5.'+ tostr(IntMovementPrecision:'1.0(p)') + ''
+	ypos_f					= '< Y>5.'+ tostr(IntMovementPrecision:'1.0(p)') + ''
+	xopos_f					= '< X>5.'+ tostr(IntMovementPrecision:'1.0(p)') + '(*2)'
+	zopos_f					= '< Z>5.'+ tostr(IntMovementPrecision:'1.0(p)') + '3'
+	yopos_f					= '< Y>5.'+ tostr(IntMovementPrecision:'1.0(p)') + ''
+	xhpos_f					= '< X>5.'+ tostr(IntMovementPrecision:'1.0(p)') + '(*2)'
+	zhpos_f					= '< Z>5.'+ tostr(IntMovementPrecision:'1.0(p)') + ''
+	yhpos_f					= '< Y>5.'+ tostr(IntMovementPrecision:'1.0(p)') + ''
+	apos_f					= '< C>5.'+ tostr(IntRotaryPrecision:'1.0(p)') + ''
+	bpos_f					= '< B>5.'+ tostr(IntRotaryPrecision:'1.0(p)') + ''
+	plane_f					= '< B>5.'+ tostr(IntRotaryPrecision:'1.0(p)') + '()'
+	feed_f					= '< F>4.'+ tostr(IntFeedPrecision:'1.0(p)') + '(p)'
 	spin_f					= '< S>5.0(n)'
+	spin_limit_f			= '<G50 S>5.0(n)'
 	pcode_f					= '<P>5.0(p)'
 	sync_label_f			= '<!L>5.0(p)'
 	blknum_gen				= false
@@ -52,6 +54,7 @@
 		input "Trace level : 0-None ; 1-Mid ; 5-All", IntTrace
 	endif
 	trace "all": IntTrace
+	call @UdrSubmachineTypesMatrix
 endp
 
 @start_mach_ctrl
@@ -164,6 +167,7 @@ endp
 endp
 
 @arc
+	call @UdrReverseArc(rev_arc)
 	if LogBAxisModePlane eq true
 		gcode = 2 + arc_direction
 		{nb,[gcode],[xpos],[ypos],[zpos]}
@@ -192,6 +196,7 @@ endp
 endp
 
 @compensation
+	call @UdrReverseCom(rev_comp)
 	if LogBAxisModePlane eq true
 		gcode = 42 - side
 	else
@@ -199,6 +204,27 @@ endp
 	endif
 	{nb,gcode,' '}
 	skipline = false
+endp
+
+@UdrReverseCom(integer rc)
+local integer s so
+	if rc eq -1
+		if side eq 1
+			s = 0
+		endif
+		if side eq 0
+			s = 1
+		endif
+		if side_o eq 1
+			so = 0
+		endif
+		if side_o eq 0
+			so = 1
+		endif
+		side = s
+		side_o = so
+	endif
+
 endp
 
 @sync_process
@@ -326,7 +352,7 @@ endp
 				{nb,'G99'}
 			endif
 			if spin_unit eq css
-				{nb,'G50 S'spin_limit}
+				{nb,spin_limit}
 				{nb,'G96 '}
 			else
 				{nb,'G97 '}
@@ -446,8 +472,29 @@ endp
 	endif
 endp
 
+@UdrReverseArc(integer ra)
+	local integer ad aod
+	if ra eq -1
+		if arc_direction eq 0 ;CW
+			ad = 1
+		endif
+		if arc_direction eq 1 ;CCW
+			ad = 0
+		endif
+		if arc_odirection eq 0 ;CW
+			aod = 1
+		endif
+		if arc_odirection eq 1 ;CCW
+			aod = 0
+		endif
+		arc_direction = ad
+		arc_odirection = aod
+	endif
+endp
+
 @arc_5x
 	call @UdrCaxisInc(apos)
+	call @UdrReverseArc(rev_arc)
 	if rot_axis_type ne axis4_face
 		gcode = 2+arc_odirection
 		if rot_axis_coord eq axis4_polar
@@ -573,6 +620,8 @@ endp
 		endif
 	endif
 	LogInTrasform = used_in_transform_4x
+
+	call @UdrLeftHandCS(submachine_ID)
 endp
 
 @UdrBaxisDir(integer SM)
@@ -769,4 +818,76 @@ endp
 	StrPatternDescription = right(pn,bins)
 	StrPatternName = left(pn,ins)
 	{nb,StrPatternName,' ('StrPatternDescription')'}
+endp
+
+@UdrLeftHandCS(integer SubM_ID)
+	local integer flip_x flip_y flip_z ra rc
+	local integer fx fy fz 
+	flip_x = 1
+	flip_y = 1
+	flip_z = 1
+	ra = 1
+	rc = 1
+	if LogLHSubmachine<<SubM_ID>> eq true
+		flip_x = -1
+		flip_y = 1
+		flip_z = 1
+		ra = -1
+		rc = -1
+	endif
+	if LogRZSubmachine<<SubM_ID>> eq true
+		flip_x = flip_x * -1
+		flip_y = flip_y * 1
+		flip_z = flip_z * -1
+		ra = ra * -1
+		rc = rc * -1
+	endif
+	fx = flip_x * 2
+	fy = flip_y
+	fz = flip_z
+	rev_arc = ra
+	rev_comp = rc
+	xpos_f					= '< X>5.'+ tostr(IntMovementPrecision:'1.0(p)') + '(*' + tostr(fx:'2.0(p)') + ')'
+	ypos_f					= '< Y>5.'+ tostr(IntMovementPrecision:'1.0(p)') + '(*' + tostr(fy:'2.0(p)') + ')'
+	zpos_f					= '< Z>5.'+ tostr(IntMovementPrecision:'1.0(p)') + '(*' + tostr(fz:'2.0(p)') + ')'
+	xopos_f					= xpos_f
+	yopos_f					= ypos_f
+	zopos_f					= zpos_f
+	xhpos_f					= xpos_f
+	yhpos_f					= ypos_f
+	zhpos_f					= zpos_f
+endp
+
+@UdrSubmachineTypesMatrix
+	LogLHSubmachine<<1>> = false ;Gang Turn [T1-T5] MS 1
+	LogLHSubmachine<<7>> = false ;Gang Turn [T1-T5] BS 7
+	LogLHSubmachine<<2>> = false ;Gang Milling [T7-T9] MS 2
+	LogLHSubmachine<<8>> = false ;Gang Milling [T7-T9] BS 8
+	LogLHSubmachine<<5>> = false ;BSE707 [T8R0..2/T58R0..2] MS 5
+	LogLHSubmachine<<6>> = false ;BSE707 [T8R0..2/T58R0..2] BS 6
+	LogLHSubmachine<<3>> = false ;BSE707 [T9R0..2/T59R0..2] MS 3
+	LogLHSubmachine<<4>> = false ;BSE707 [T9R0..2/T59R0..2]_BS 4
+	LogLHSubmachine<<9>> = false ;Front Ganig B1 [T11-T14] MS 9
+	LogLHSubmachine<<10>> = true ;Back Ganig B1 [T51-T54] BS 10
+	LogLHSubmachine<<11>> = false ;Transfer[T30 / MS] 11
+	LogLHSubmachine<<12>> = false ;Opposite Tool Mill [T21-T23] MS 12
+	LogLHSubmachine<<13>> = false ;Opposite Tool Turn [T24-T26] MS 13
+	LogLHSubmachine<<14>> = false ;Back Head Stock Mill [T31-T32] BS 14
+	LogLHSubmachine<<15>> = false ;Back Head Stock Turn [T35-T38] BS 15
+
+	LogRZSubmachine<<1>> = false ;Gang Turn [T1-T5] MS 1
+	LogRZSubmachine<<7>> = false ;Gang Turn [T1-T5] BS 7
+	LogRZSubmachine<<2>> = false ;Gang Milling [T7-T9] MS 2
+	LogRZSubmachine<<8>> = false ;Gang Milling [T7-T9] BS 8
+	LogRZSubmachine<<5>> = false ;BSE707 [T8R0..2/T58R0..2] MS 5
+	LogRZSubmachine<<6>> = false ;BSE707 [T8R0..2/T58R0..2] BS 6
+	LogRZSubmachine<<3>> = false ;BSE707 [T9R0..2/T59R0..2] MS 3
+	LogRZSubmachine<<4>> = false ;BSE707 [T9R0..2/T59R0..2]_BS 4
+	LogRZSubmachine<<9>> = true ;Front Ganig B1 [T11-T14] MS 9
+	LogRZSubmachine<<10>> = true ;Back Ganig B1 [T51-T54] BS 10
+	LogRZSubmachine<<11>> = false ;Transfer[T30 / MS] 11
+	LogRZSubmachine<<12>> = false ;Opposite Tool Mill [T21-T23] MS 12
+	LogRZSubmachine<<13>> = false ;Opposite Tool Turn [T24-T26] MS 13
+	LogRZSubmachine<<14>> = false ;Back Head Stock Mill [T31-T32] BS 14
+	LogRZSubmachine<<15>> = false ;Back Head Stock Turn [T35-T38] BS 15
 endp
