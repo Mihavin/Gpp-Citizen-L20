@@ -207,7 +207,7 @@ endp
 endp
 
 @UdrReverseCom(integer rc)
-local integer s so
+	local integer s so
 	if rc eq -1
 		if side eq 1
 			s = 0
@@ -224,7 +224,6 @@ local integer s so
 		side = s
 		side_o = so
 	endif
-
 endp
 
 @sync_process
@@ -605,6 +604,7 @@ endp
 endp
 
 @start_of_job
+	call @UdrLeftHandCS(submachine_ID)
 	call @UdrCaxisInc(first_axis_angle)
 	if job_machine_type ne turning
 		{first_axis_angle:apos_f}
@@ -620,7 +620,6 @@ endp
 		endif
 	endif
 	LogInTrasform = used_in_transform_4x
-
 	call @UdrLeftHandCS(submachine_ID)
 endp
 
@@ -835,7 +834,7 @@ endp
 		ra = -1
 		rc = -1
 	endif
-	if LogRZSubmachine<<SubM_ID>> eq true
+	if LogRZSubmachine<<SubM_ID>> eq true and LogBAxisMode eq true
 		flip_x = flip_x * -1
 		flip_y = flip_y * 1
 		flip_z = flip_z * -1
