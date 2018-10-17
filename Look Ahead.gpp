@@ -1,0 +1,12 @@
+
+@init_post
+global numeric NumMyVar 
+endp
+
+@start_of_file
+{nb,'Test Look Ahead = '??NumMyVar??}
+endp
+
+@chamge_tool
+NumMyVar = tool_number
+endp
