@@ -227,7 +227,7 @@ endp
 endp
 
 @sync_process
-	if NumJobsInLabel ne 0 or Last_Sync eq 1
+	if number_jobs_in_label  ne 0 or Last_Sync eq 1
 		{nb,sync_label}
 		local string Axes_Pattern
 		Axes_Pattern = get_axes_pattern_name(Sync_Data_Name,ChannelID,sync_label)
@@ -828,8 +828,8 @@ endp
 	ra = 1
 	rc = 1
 	if LogLHSubmachine<<SubM_ID>> eq true
-		flip_x = -1
-		flip_y = 1
+		flip_x = 1
+		flip_y = -1
 		flip_z = 1
 		ra = -1
 		rc = -1
