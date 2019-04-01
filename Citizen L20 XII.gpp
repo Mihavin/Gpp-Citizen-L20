@@ -133,7 +133,7 @@ endp
 	{nl, '%'}
 endp
 
-@rapid_move
+@rapid_move;test111
 	if job_machine_type eq turning
 		change(ypos) = false
 		change(yopos) = false
