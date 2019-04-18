@@ -8,7 +8,8 @@
 ;26/08/2018		4.1				Michael V.					SC2018DV - CS sets - Removed LH CS workarounds
 ;03/10/2018		5.0				Michael V.					SC2018DV - Rebiulded VIMD, support of device ID get function
 ;29/10/2018		6.0				Michael V.					SC2020DV - Support of SC2020, NTT and more.
-;444
+;4444
+
 @init_post
 	global string spin_f bpos_f pcode_f sync_label_f plane_f
 	global integer IntTrace IntSpinCode IntLastSpinCcode<<2>>
